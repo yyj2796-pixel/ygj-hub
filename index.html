@@ -24,6 +24,8 @@
             --accent-blue: #0071e3;
             --accent-glow: #2997ff;
             --accent-purple: #9d4edd;
+            --accent-discord: #5865F2;
+            --accent-premium: #f59e0b;
             --text-primary: #f5f5f7;
             --text-secondary: #86868b;
             --text-muted: #515154;
@@ -247,6 +249,12 @@
             text-overflow: ellipsis;
         }
 
+        .user-status-tag.premium {
+            color: var(--accent-premium);
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
         /* LAYOUT CONTAINERS */
         .container {
             max-width: 1100px;
@@ -372,6 +380,37 @@
             min-width: 180px;
             max-width: 100%;
             white-space: nowrap;
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, var(--accent-premium) 0%, #d97706) !important;
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4) !important;
+        }
+
+        .btn-discord {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent-discord) 0%, #4752C4 100%);
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 16px 32px;
+            border-radius: 30px;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 6px 20px rgba(88, 101, 242, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            cursor: pointer;
+            min-width: 210px;
+            max-width: 100%;
+            white-space: nowrap;
+        }
+
+        .btn-discord:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 10px 28px rgba(88, 101, 242, 0.5);
+            background: linear-gradient(135deg, #6775f5 0%, #3c45b0 100%);
         }
 
         .btn-secondary {
@@ -661,6 +700,31 @@
             font-weight: 500;
         }
 
+        .key-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .type-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            border-radius: 10px;
+            padding: 10px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .type-btn.active {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: var(--accent-premium);
+            color: var(--accent-premium);
+        }
+
         .key-result-box {
             display: flex;
             gap: 10px;
@@ -770,6 +834,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
             gap: 20px;
+            margin-bottom: 24px;
         }
 
         .chart-container {
@@ -787,6 +852,85 @@
             color: var(--text-primary);
             margin-bottom: 12px;
             text-align: left;
+        }
+
+        /* USER MANAGEMENT SECTION IN ADMIN */
+        .admin-section-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: left;
+        }
+
+        .admin-section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .user-search-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .user-search-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #ffffff;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .btn-search-user {
+            background: var(--accent-blue);
+            color: #ffffff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .user-list-container {
+            max-height: 140px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .user-item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-glass);
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+        .btn-grant-premium {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: var(--accent-premium);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-grant-premium:hover {
+            background: rgba(245, 158, 11, 0.3);
         }
 
         /* FOOTER & ADMIN LINK */
@@ -853,7 +997,7 @@
                 width: 100%;
             }
 
-            .btn-primary, .btn-secondary {
+            .btn-primary, .btn-secondary, .btn-discord {
                 width: 100%;
             }
 
@@ -917,7 +1061,8 @@
             </p>
 
             <div class="cta-group reveal delay-3">
-                <button class="btn-primary" onclick="handleKeyButtonClick()">Get Free Key</button>
+                <button class="btn-primary" id="mainKeyBtn" onclick="handleKeyButtonClick()">Get Free Key</button>
+                <button class="btn-discord" onclick="handleDiscordCopy()">Get Premium Key for discord</button>
                 <button class="btn-secondary" id="heroGetScriptBtn" onclick="handleGetScript()">Get Script</button>
             </div>
         </section>
@@ -1028,9 +1173,15 @@
         <div class="modal-box">
             <button class="modal-close" onclick="closeKeyModal()">✕</button>
 
-            <div class="key-info-box">
+            <div class="key-info-box" id="keyInfoBox">
                 <div class="key-info-title">진짜로 키를 생성하시겠습니까?</div>
                 <div class="key-info-desc">이 키는 3일에 한 번 생성할 수 있습니다.</div>
+            </div>
+
+            <!-- 프리미엄 유저 전용 코드 타입 선택기 -->
+            <div class="key-type-selector" id="keyTypeSelector" style="display: none;">
+                <button class="type-btn active" id="typeBtnF" onclick="setKeyType('F')">F Type (Standard)</button>
+                <button class="type-btn" id="typeBtnD" onclick="setKeyType('D')">D Type (Discord)</button>
             </div>
 
             <div class="key-result-box">
@@ -1056,7 +1207,7 @@
             <button class="modal-close" onclick="closeAdminDashboard()">✕</button>
             
             <div class="auth-header" style="text-align: left; margin-bottom: 24px;">
-                📊 Real-Time Admin Analytics Dashboard
+                📊 Real-Time Admin Analytics & User Management
             </div>
 
             <!-- STAT CARDS -->
@@ -1090,6 +1241,18 @@
                     <canvas id="durationChart"></canvas>
                 </div>
             </div>
+
+            <!-- USER MANAGEMENT & PREMIUM GRANT SECTION -->
+            <div class="admin-section-box">
+                <div class="admin-section-title">👑 User Search & Premium Permission Manager</div>
+                <div class="user-search-group">
+                    <input type="text" class="user-search-input" id="adminSearchInput" placeholder="검색할 사용자 아이디 입력..." oninput="filterUserList()">
+                    <button class="btn-search-user" onclick="filterUserList()">검색</button>
+                </div>
+                <div class="user-list-container" id="adminUserListContainer">
+                    <!-- Dynamic User Rows -->
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1107,6 +1270,58 @@
                 e.preventDefault();
             }
         });
+
+        // --- CROSS-PLATFORM CLIPBOARD HELPER ---
+        function copyToClipboard(text, successMsg) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast(successMsg);
+                }).catch(() => fallbackCopy(text, successMsg));
+            } else {
+                fallbackCopy(text, successMsg);
+            }
+        }
+
+        function fallbackCopy(text, successMsg) {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = text;
+            tempInput.style.position = 'fixed';
+            tempInput.style.left = '-9999px';
+            document.body.appendChild(tempInput);
+            tempInput.focus();
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                showToast(successMsg);
+            } catch (err) {
+                showToast("Copy failed!");
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        // --- DISCORD PREMIUM LINK COPY ---
+        function handleDiscordCopy() {
+            copyToClipboard("https://discord.gg/HCPrpQ6W", "Discord link copied to clipboard!");
+        }
+
+        // --- KEY GENERATOR HELPERS ---
+        let selectedKeyPrefix = 'F';
+
+        function setKeyType(type) {
+            selectedKeyPrefix = type;
+            document.getElementById('typeBtnF').classList.toggle('active', type === 'F');
+            document.getElementById('typeBtnD').classList.toggle('active', type === 'D');
+        }
+
+        function generateCustomKey(prefix = 'F') {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            const length = Math.floor(Math.random() * 4) + 4; // 총 5~8자리
+            let result = prefix;
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
 
         // --- REAL ANALYTICS & TIME TRACKING LOGIC ---
         const pageLoadTime = Date.now();
@@ -1207,6 +1422,11 @@
             localStorage.setItem('ygj_users_db', JSON.stringify(db));
         }
 
+        function isUserPremium(username) {
+            const db = getUsersDB();
+            return db[username] && db[username].isPremium === true;
+        }
+
         function checkPersistedUser() {
             const savedUser = localStorage.getItem('ygj_current_user');
             if (savedUser) {
@@ -1218,7 +1438,20 @@
         function updateUIForLoggedInUser() {
             const userInfoTag = document.getElementById('userInfoTag');
             const authNavBtn = document.getElementById('authNavBtn');
-            userInfoTag.innerText = `👤 ${currentUser}`;
+            const mainKeyBtn = document.getElementById('mainKeyBtn');
+
+            if (isUserPremium(currentUser)) {
+                userInfoTag.innerText = `👑 ${currentUser} (PREMIUM)`;
+                userInfoTag.className = 'user-status-tag premium';
+                mainKeyBtn.innerText = 'Get Your PREMIUM KEY';
+                mainKeyBtn.className = 'btn-primary btn-premium';
+            } else {
+                userInfoTag.innerText = `👤 ${currentUser}`;
+                userInfoTag.className = 'user-status-tag';
+                mainKeyBtn.innerText = 'Get Free Key';
+                mainKeyBtn.className = 'btn-primary';
+            }
+
             userInfoTag.style.display = 'inline-block';
             authNavBtn.innerText = 'Logout';
             authNavBtn.onclick = handleLogout;
@@ -1228,6 +1461,10 @@
             currentUser = null;
             localStorage.removeItem('ygj_current_user');
             document.getElementById('userInfoTag').style.display = 'none';
+            const mainKeyBtn = document.getElementById('mainKeyBtn');
+            mainKeyBtn.innerText = 'Get Free Key';
+            mainKeyBtn.className = 'btn-primary';
+
             const authNavBtn = document.getElementById('authNavBtn');
             authNavBtn.innerText = 'Login';
             authNavBtn.onclick = () => openAuthModal('login');
@@ -1298,7 +1535,8 @@
                 db[username] = {
                     password: password,
                     createdIP: clientIP || 'Unknown',
-                    lastGeneratedAt: 0
+                    lastGeneratedAt: 0,
+                    isPremium: false
                 };
                 saveUsersDB(db);
                 currentUser = username;
@@ -1322,7 +1560,7 @@
             document.getElementById('authPassword').value = '';
         }
 
-        // --- KEY GENERATION & DEMO FALLBACK ---
+        // --- KEY GENERATION & AUTOMATIC CLIPBOARD COPY ---
         function handleKeyButtonClick() {
             if (!currentUser) {
                 openAuthModal('login');
@@ -1333,6 +1571,8 @@
         }
 
         function checkCooldown(username) {
+            if (isUserPremium(username)) return { ready: true }; // 프리미엄 유저는 쿨타임 면제
+
             const db = getUsersDB();
             const user = db[username];
             if (!user || !user.lastGeneratedAt) return { ready: true };
@@ -1356,7 +1596,6 @@
                 db[username].lastGeneratedAt = Date.now();
                 saveUsersDB(db);
             }
-            // Update analytics count
             const analytics = getAnalyticsData();
             analytics.totalKeysGenerated++;
             saveAnalyticsData(analytics);
@@ -1364,25 +1603,21 @@
 
         function handleGetScript() {
             const scriptText = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/yyj2796-pixel/Code/refs/heads/main/Code.txt"))()';
-            navigator.clipboard.writeText(scriptText).then(() => {
-                const navBtn = document.getElementById('navGetScriptBtn');
-                const heroBtn = document.getElementById('heroGetScriptBtn');
+            copyToClipboard(scriptText, "Script copied to clipboard!");
 
-                const originalNavText = navBtn.innerText;
-                const originalHeroText = heroBtn.innerText;
+            const navBtn = document.getElementById('navGetScriptBtn');
+            const heroBtn = document.getElementById('heroGetScriptBtn');
 
-                navBtn.innerText = "copied script!";
-                heroBtn.innerText = "copied script!";
+            const originalNavText = navBtn.innerText;
+            const originalHeroText = heroBtn.innerText;
 
-                showToast("Script copied to clipboard!");
+            navBtn.innerText = "copied script!";
+            heroBtn.innerText = "copied script!";
 
-                setTimeout(() => {
-                    navBtn.innerText = originalNavText;
-                    heroBtn.innerText = originalHeroText;
-                }, 3000);
-            }).catch(() => {
-                showToast("Failed to copy script.");
-            });
+            setTimeout(() => {
+                navBtn.innerText = originalNavText;
+                heroBtn.innerText = originalHeroText;
+            }, 3000);
         }
 
         const modal = document.getElementById('keyModal');
@@ -1394,6 +1629,27 @@
             isGenerated = false;
             keyInput.value = "Click 'Generate Key' Below";
             actionBtn.innerText = "Generate Key";
+
+            const isPrem = isUserPremium(currentUser);
+            const keyInfoBox = document.getElementById('keyInfoBox');
+            const typeSelector = document.getElementById('keyTypeSelector');
+
+            if (isPrem) {
+                keyInfoBox.innerHTML = `
+                    <div class="key-info-title" style="color: var(--accent-premium);">👑 PREMIUM KEY GENERATOR</div>
+                    <div class="key-info-desc">쿨타임 없이 원하는 타입(F 또는 D)의 키를 마음대로 생성하세요.</div>
+                `;
+                typeSelector.style.display = 'flex';
+                selectedKeyPrefix = 'F';
+                setKeyType('F');
+            } else {
+                keyInfoBox.innerHTML = `
+                    <div class="key-info-title">진짜로 키를 생성하시겠습니까?</div>
+                    <div class="key-info-desc">이 키는 3일에 한 번 생성할 수 있습니다.</div>
+                `;
+                typeSelector.style.display = 'none';
+            }
+
             modal.classList.add('open');
         }
 
@@ -1419,48 +1675,60 @@
                 actionBtn.disabled = true;
                 actionBtn.innerText = "Processing...";
 
+                const isPrem = isUserPremium(currentUser);
+
                 try {
                     const response = await fetch('https://my-roblox-key-server.onrender.com/generate-key', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             isMaster: true,
-                            creator: `Web-${currentUser}`
+                            creator: isPrem ? `Web-${currentUser} [PREMIUM]` : `Web-${currentUser}`
                         })
                     });
 
                     if (!response.ok) throw new Error('Network error');
 
                     const data = await response.json();
-                    if (data.success) {
-                        keyInput.value = data.key;
+                    if (data.success && data.key) {
+                        let cleanedKey = data.key.replace(/-/g, '').toUpperCase();
+                        if (isPrem) {
+                            if (!cleanedKey.startsWith(selectedKeyPrefix)) {
+                                cleanedKey = selectedKeyPrefix + cleanedKey.substring(1);
+                            }
+                        } else {
+                            if (!cleanedKey.startsWith('F')) cleanedKey = 'F' + cleanedKey;
+                        }
+
+                        keyInput.value = cleanedKey;
                         updateLastGeneratedTime(currentUser);
                         actionBtn.innerText = "Copy Key";
                         actionBtn.disabled = false;
                         isGenerated = true;
-                        showToast("키가 성공적으로 생성되었습니다!");
+
+                        copyToClipboard(cleanedKey, "Key generated and copied to clipboard!");
                     } else {
-                        throw new Error(data.message);
+                        throw new Error(data.message || 'Key generation failed');
                     }
                 } catch (error) {
-                    // Fallback Demo Key Generation if server is down
+                    // Fallback Key Generation
                     setTimeout(() => {
-                        const fallbackKey = 'YGJ-' + Math.random().toString(36).substring(2, 8).toUpperCase() + '-2026';
+                        const fallbackKey = generateCustomKey(isPrem ? selectedKeyPrefix : 'F');
                         keyInput.value = fallbackKey;
                         updateLastGeneratedTime(currentUser);
                         actionBtn.innerText = "Copy Key";
                         actionBtn.disabled = false;
                         isGenerated = true;
-                        showToast("키가 성공적으로 생성되었습니다!");
+
+                        copyToClipboard(fallbackKey, "Key generated and copied to clipboard!");
                     }, 800);
                 }
             } else {
-                navigator.clipboard.writeText(keyInput.value);
-                showToast("Key copied to clipboard!");
+                copyToClipboard(keyInput.value, "Key copied to clipboard!");
             }
         }
 
-        // --- ADMIN DASHBOARD REAL ANALYTICS LOGIC ---
+        // --- ADMIN DASHBOARD REAL ANALYTICS & USER MANAGEMENT LOGIC ---
         function openAdminPrompt() {
             const inputCode = prompt("관리자 인증 코드를 입력하세요:");
             if (inputCode === "admin.yoon2jun") {
@@ -1488,18 +1756,17 @@
             document.getElementById('statAvgDuration').innerText = "2m 14s";
             document.getElementById('statTotalAccounts').innerText = totalAccounts;
 
-            // Generate last 7 days labels
+            // Render Charts
             const last7Days = [];
             const visitorsData = [];
             for (let i = 6; i >= 0; i--) {
                 const d = new Date();
                 d.setDate(d.getDate() - i);
                 const dateStr = d.toISOString().split('T')[0];
-                last7Days.push(dateStr.substring(5)); // MM-DD
+                last7Days.push(dateStr.substring(5));
                 visitorsData.push(analytics.visitors[dateStr] || Math.floor(Math.random() * 5));
             }
 
-            // Render Visitors Chart
             const ctx1 = document.getElementById('visitorsChart').getContext('2d');
             if (visitorsChartInstance) visitorsChartInstance.destroy();
             visitorsChartInstance = new Chart(ctx1, {
@@ -1526,7 +1793,6 @@
                 }
             });
 
-            // Render Stay Duration Chart
             const ctx2 = document.getElementById('durationChart').getContext('2d');
             if (durationChartInstance) durationChartInstance.destroy();
             durationChartInstance = new Chart(ctx2, {
@@ -1550,6 +1816,65 @@
                     }
                 }
             });
+
+            filterUserList();
+        }
+
+        function filterUserList() {
+            const query = document.getElementById('adminSearchInput').value.toLowerCase();
+            const db = getUsersDB();
+            const container = document.getElementById('adminUserListContainer');
+            container.innerHTML = '';
+
+            const usernames = Object.keys(db);
+            if (usernames.length === 0) {
+                container.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 10px;">가입된 유저가 없습니다.</div>`;
+                return;
+            }
+
+            let matchCount = 0;
+            usernames.forEach(username => {
+                if (username.toLowerCase().includes(query)) {
+                    matchCount++;
+                    const user = db[username];
+                    const isPrem = user.isPremium === true;
+
+                    const row = document.createElement('div');
+                    row.className = 'user-item-row';
+                    row.innerHTML = `
+                        <div>
+                            <span style="font-weight:600; color:#fff;">${username}</span> 
+                            <span style="font-size:11px; color:var(--text-secondary); margin-left:8px;">(IP: ${user.createdIP || 'Unknown'})</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="font-size:11px; font-weight:700; color:${isPrem ? 'var(--accent-premium)' : 'var(--text-muted)'};">
+                                ${isPrem ? '👑 PREMIUM' : 'STANDARD'}
+                            </span>
+                            <button class="btn-grant-premium" onclick="toggleUserPremium('${username}')">
+                                ${isPrem ? 'Revoke' : 'Grant Premium'}
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(row);
+                }
+            });
+
+            if (matchCount === 0) {
+                container.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 10px;">검색 결과가 없습니다.</div>`;
+            }
+        }
+
+        function toggleUserPremium(username) {
+            const db = getUsersDB();
+            if (db[username]) {
+                db[username].isPremium = !db[username].isPremium;
+                saveUsersDB(db);
+                filterUserList();
+                showToast(`${username님의 프리미엄 권한이 변경되었습니다.`);
+                if (currentUser === username) {
+                    updateUIForLoggedInUser();
+                }
+            }
         }
 
         function showToast(message) {
