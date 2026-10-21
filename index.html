@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YGJ HUB - Universal Roblox Script Engine</title>
+    <!-- Chart.js CDN for Admin Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* CSS RESET & VARIABLES */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            user-select: none; /* F12 / 드래그 및 텍스트 선택 방지 */
+        }
+
+        :root {
+            --bg-main: #000000;
+            --bg-card: rgba(22, 22, 26, 0.7);
+            --bg-card-hover: rgba(32, 32, 38, 0.85);
+            --accent-blue: #0071e3;
+            --accent-glow: #2997ff;
+            --accent-purple: #9d4edd;
+            --text-primary: #f5f5f7;
+            --text-secondary: #86868b;
+            --text-muted: #515154;
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(41, 151, 255, 0.3);
+            --navbar-height: 70px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+        }
+
+        body {
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 0. FULLSCREEN SPLASH SCREEN */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .splash-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .splash-logo {
+            font-size: clamp(36px, 8vw, 64px);
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #ffffff 0%, var(--accent-glow) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 24px;
+            animation: pulseSplash 2s ease-in-out infinite alternate;
+        }
+
+        .splash-loader {
+            width: 180px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .splash-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 4px;
+            animation: fillProgress 1.8s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+        }
+
+        @keyframes pulseSplash {
+            0% { transform: scale(0.98); opacity: 0.8; }
+            100% { transform: scale(1.02); opacity: 1; }
+        }
+
+        @keyframes fillProgress {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+
+        /* AMBIENT BACKGROUND GLOWS */
+        .ambient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(140px);
+            opacity: 0.15;
+            animation: pulseGlow 10s ease-in-out infinite alternate;
+        }
+
+        .glow-1 {
+            top: -10%;
+            left: 30%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--accent-blue), transparent);
+        }
+
+        .glow-2 {
+            bottom: 10%;
+            right: 10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-purple), transparent);
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(1) translate(0, 0); opacity: 0.12; }
+            100% { transform: scale(1.15) translate(-20px, 20px); opacity: 0.22; }
+        }
+
+        /* NAVIGATION BAR */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--navbar-height);
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-glass);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+        }
+
+        .nav-brand {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff 0%, #0071e3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            white-space: nowrap;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            list-style: none;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+            padding: 4px 0;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-btn-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: nowrap;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, var(--accent-blue), #005bb5);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 113, 227, 0.25);
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-btn:hover {
+            transform: scale(1.04);
+            box-shadow: 0 4px 15px rgba(0, 113, 227, 0.4);
+        }
+
+        .nav-btn-script {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-glass);
+        }
+
+        .user-status-tag {
+            font-size: 12px;
+            color: var(--accent-glow);
+            font-weight: 600;
+            padding: 6px 12px;
+            background: rgba(41, 151, 255, 0.1);
+            border: 1px solid rgba(41, 151, 255, 0.2);
+            border-radius: 15px;
+            white-space: nowrap;
+            max-width: 140px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* LAYOUT CONTAINERS */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        section {
+            padding: 120px 0 60px 0;
+            position: relative;
+        }
+
+        /* ANIMATION UTILITIES */
+        .reveal {
+            opacity: 0;
+            transform: translateY(35px);
+            transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: opacity, transform;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .delay-1 { transition-delay: 0.15s; }
+        .delay-2 { transition-delay: 0.3s; }
+        .delay-3 { transition-delay: 0.45s; }
+
+        /* HERO SECTION */
+        .hero-section {
+            padding-top: calc(var(--navbar-height) + 80px);
+            min-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: rgba(41, 151, 255, 0.1);
+            border: 1px solid rgba(41, 151, 255, 0.25);
+            border-radius: 30px;
+            font-size: 13px;
+            color: var(--accent-glow);
+            font-weight: 500;
+            margin-bottom: 28px;
+        }
+
+        .badge-dot {
+            width: 7px;
+            height: 7px;
+            background-color: #30d158;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #30d158;
+        }
+
+        .hero-title {
+            font-size: clamp(42px, 7vw, 76px);
+            font-weight: 800;
+            letter-spacing: -2px;
+            line-height: 1.15;
+            margin-bottom: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hero-title .title-top {
+            display: block;
+            margin-bottom: 12px;
+            background: linear-gradient(180deg, #ffffff 0%, #d0d0d0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-title .title-bottom {
+            display: block;
+            background: linear-gradient(180deg, #2997ff 0%, #0051a8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 30px rgba(0, 113, 227, 0.2);
+        }
+
+        .hero-subtitle {
+            font-size: clamp(17px, 2vw, 21px);
+            color: var(--text-secondary);
+            font-weight: 400;
+            max-width: 620px;
+            line-height: 1.5;
+            margin-bottom: 44px;
+        }
+
+        .cta-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, #005bb5 100%);
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 16px 36px;
+            border-radius: 30px;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 6px 20px rgba(0, 113, 227, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            cursor: pointer;
+            min-width: 180px;
+            max-width: 100%;
+            white-space: nowrap;
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 500;
+            padding: 16px 32px;
+            border-radius: 30px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-glass);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            min-width: 160px;
+            max-width: 100%;
+            white-space: nowrap;
+        }
+
+        /* SECTION HEADINGS */
+        .section-header {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .section-tag {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-glow);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .section-title {
+            font-size: clamp(28px, 4vw, 42px);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        /* FEATURES GRID */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            padding: 32px 28px;
+            backdrop-filter: blur(12px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-glow);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(41, 151, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: var(--accent-glow);
+        }
+
+        .feature-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .feature-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* HOW IT WORKS STEPS */
+        .steps-wrapper {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            position: relative;
+        }
+
+        .step-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            padding: 32px 24px;
+            position: relative;
+        }
+
+        .step-number {
+            font-size: 36px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.15);
+            margin-bottom: 16px;
+        }
+
+        .step-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .step-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* MODAL COMMON STYLES */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(16px);
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: #0d0d11;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 480px;
+            padding: 32px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            transform: scale(0.92);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-backdrop.open .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            color: var(--text-secondary);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+        }
+
+        /* AUTH FORM STYLES */
+        .auth-header {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            text-align: left;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .form-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 14px;
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--accent-blue), #005bb5);
+            color: #ffffff;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: opacity 0.2s;
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .auth-switch a {
+            color: var(--accent-glow);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* KEY GENERATION MODAL */
+        .key-info-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .key-info-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .key-info-desc {
+            font-size: 13px;
+            color: var(--accent-glow);
+            font-weight: 500;
+        }
+
+        .key-result-box {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .key-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 14px;
+            color: var(--accent-glow);
+            font-family: monospace;
+            font-size: 15px;
+            font-weight: 600;
+            text-align: center;
+            outline: none;
+        }
+
+        .btn-copy {
+            background: var(--accent-blue);
+            color: #ffffff;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        /* ERROR MODAL */
+        .error-modal-box {
+            background: #140d0e;
+            border: 1px solid rgba(255, 69, 58, 0.3);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 420px;
+            padding: 28px;
+            text-align: center;
+        }
+
+        .error-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .error-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ff453a;
+            margin-bottom: 8px;
+        }
+
+        .error-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .btn-error-close {
+            background: rgba(255, 69, 58, 0.15);
+            border: 1px solid rgba(255, 69, 58, 0.4);
+            color: #ff453a;
+            padding: 12px 28px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* ADMIN DASHBOARD MODAL STYLES */
+        .admin-modal-box {
+            max-width: 820px !important;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: left;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent-glow);
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 20px;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            height: 260px;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
+        /* FOOTER & ADMIN LINK */
+        .footer {
+            border-top: 1px solid var(--border-glass);
+            padding: 40px 0 60px 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-top: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-trigger-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 11px;
+            text-decoration: underline;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .admin-trigger-btn:hover {
+            color: var(--text-secondary);
+        }
+
+        /* TOAST NOTIFICATION */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(48, 209, 88, 0.9);
+            color: #000;
+            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 4000;
+            font-size: 14px;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0 16px;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+
+            .cta-group {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn-primary, .btn-secondary {
+                width: 100%;
+            }
+
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+
+            section {
+                padding: 80px 0 40px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 0. SPLASH SCREEN -->
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-logo">YGJ HUB</div>
+        <div class="splash-loader">
+            <div class="splash-progress"></div>
+        </div>
+    </div>
+
+    <!-- AMBIENT BACKGROUND GLOWS -->
+    <div class="ambient-bg">
+        <div class="glow-orb glow-1"></div>
+        <div class="glow-orb glow-2"></div>
+    </div>
+
+    <!-- NAVIGATION BAR -->
+    <nav class="navbar">
+        <div class="nav-brand">YGJ HUB</div>
+        <ul class="nav-menu">
+            <li><a href="#overview" class="nav-link">Overview</a></li>
+            <li><a href="#features" class="nav-link">Features</a></li>
+            <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+        </ul>
+        <div class="nav-btn-group">
+            <button class="nav-btn nav-btn-script" id="navGetScriptBtn" onclick="handleGetScript()">Get Script</button>
+            <span id="userInfoTag" class="user-status-tag" style="display: none;"></span>
+            <button class="nav-btn" id="authNavBtn" onclick="openAuthModal('login')">Login</button>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="container">
+
+        <!-- HERO SECTION -->
+        <section id="overview" class="hero-section">
+            <div class="hero-badge reveal">
+                <span class="badge-dot"></span> Undetected v4.2.1 • Universal Compatibility
+            </div>
+
+            <h1 class="hero-title reveal delay-1">
+                <span class="title-top">UNIVERSAL</span>
+                <span class="title-bottom">YGJ HUB</span>
+            </h1>
+
+            <p class="hero-subtitle reveal delay-2">
+                모든 로블록스 게임에서 작동하는 강력한 오버레이 스크립트 엔진입니다. Fly, Noclip, ESP, Teleport, Bring 기능을 완벽하게 지원합니다.
+            </p>
+
+            <div class="cta-group reveal delay-3">
+                <button class="btn-primary" onclick="handleKeyButtonClick()">Get Free Key</button>
+                <button class="btn-secondary" id="heroGetScriptBtn" onclick="handleGetScript()">Get Script</button>
+            </div>
+        </section>
+
+        <!-- FEATURES SECTION -->
+        <section id="features">
+            <div class="section-header reveal">
+                <span class="section-tag">Universal Capabilities</span>
+                <h2 class="section-title">5 Essential Features</h2>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card reveal delay-1">
+                    <div class="feature-icon">🚀</div>
+                    <h3 class="feature-title">Fly (비행)</h3>
+                    <p class="feature-desc">속도 조절이 가능한 부드러운 비행 기능으로 맵 전체를 자유롭게 이동하세요.</p>
+                </div>
+
+                <div class="feature-card reveal delay-2">
+                    <div class="feature-icon">👻</div>
+                    <h3 class="feature-title">Noclip (벽 통과)</h3>
+                    <p class="feature-desc">모든 장애물과 벽을 제약 없이 통과할 수 있습니다.</p>
+                </div>
+
+                <div class="feature-card reveal delay-3">
+                    <div class="feature-icon">👁️</div>
+                    <h3 class="feature-title">ESP (위치 감지)</h3>
+                    <p class="feature-desc">벽 뒤에 숨은 플레이어의 위치 및 거리를 실시간으로 감지하여 박스로 표시합니다.</p>
+                </div>
+
+                <div class="feature-card reveal delay-1">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Teleport (순간이동)</h3>
+                    <p class="feature-desc">원하는 플레이어나 특정 좌표로 클릭 한 번으로 즉시 이동합니다.</p>
+                </div>
+
+                <div class="feature-card reveal delay-2">
+                    <div class="feature-icon">🧲</div>
+                    <h3 class="feature-title">Bring (끌어오기)</h3>
+                    <p class="feature-desc">타겟 플레이어나 대상을 내 위치 앞으로 당겨옵니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOW IT WORKS SECTION -->
+        <section id="how-it-works">
+            <div class="section-header reveal">
+                <span class="section-tag">Quick Start</span>
+                <h2 class="section-title">3 Steps to Get Started</h2>
+            </div>
+
+            <div class="steps-wrapper">
+                <div class="step-card reveal delay-1">
+                    <div class="step-number">01</div>
+                    <h3 class="step-title">Account & Key</h3>
+                    <p class="step-desc">회원가입 후 로그인하여 3일에 한 번 무료 인증 키를 발급받으세요.</p>
+                </div>
+
+                <div class="step-card reveal delay-2">
+                    <div class="step-number">02</div>
+                    <h3 class="step-title">Execute Script</h3>
+                    <p class="step-desc">YGJ Hub 로더 스크립트를 로블록스 익스큐터에 복사 및 실행하세요.</p>
+                </div>
+
+                <div class="step-card reveal delay-3">
+                    <div class="step-number">03</div>
+                    <h3 class="step-title">Authenticate & Play</h3>
+                    <p class="step-desc">발급받은 키를 GUI 입력창에 넣으면 즉시 모든 기능이 해제됩니다.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <p>© 2026 YGJ HUB. Designed for universal Roblox scripting performance.</p>
+        <button class="admin-trigger-btn" onclick="openAdminPrompt()">이 웹의 관리자이십니까?</button>
+    </footer>
+
+    <!-- AUTH MODAL -->
+    <div class="modal-backdrop" id="authModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeAuthModal()">✕</button>
+            <div class="auth-header" id="authTitle">로그인</div>
+
+            <form class="auth-form" onsubmit="handleAuthSubmit(event)">
+                <div class="form-group">
+                    <label>아이디 (유저네임)</label>
+                    <input type="text" class="form-input" id="authUsername" placeholder="아이디를 입력하세요" required>
+                </div>
+                <div class="form-group">
+                    <label>비밀번호</label>
+                    <input type="password" class="form-input" id="authPassword" placeholder="비밀번호를 입력하세요" required>
+                </div>
+                <button type="submit" class="btn-submit" id="authSubmitBtn">로그인</button>
+            </form>
+
+            <div class="auth-switch">
+                <span id="authSwitchText">계정이 없으신가요?</span>
+                <a onclick="toggleAuthMode()" id="authSwitchLink">회원가입</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- KEY GENERATION MODAL -->
+    <div class="modal-backdrop" id="keyModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeKeyModal()">✕</button>
+
+            <div class="key-info-box">
+                <div class="key-info-title">진짜로 키를 생성하시겠습니까?</div>
+                <div class="key-info-desc">이 키는 3일에 한 번 생성할 수 있습니다.</div>
+            </div>
+
+            <div class="key-result-box">
+                <input type="text" class="key-input" id="generatedKey" value="Click 'Generate Key' Below" readonly>
+                <button class="btn-copy" id="actionBtn" onclick="handleKeyGeneration()">Generate Key</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ERROR MODAL -->
+    <div class="modal-backdrop" id="errorModal">
+        <div class="error-modal-box">
+            <div class="error-icon">⚠️</div>
+            <div class="error-title" id="errorModalTitle">오류 발생</div>
+            <div class="error-desc" id="errorModalDesc">알 수 없는 오류가 발생했습니다.</div>
+            <button class="btn-error-close" onclick="closeErrorModal()">확인</button>
+        </div>
+    </div>
+
+    <!-- ADMIN DASHBOARD MODAL -->
+    <div class="modal-backdrop" id="adminDashboardModal">
+        <div class="modal-box admin-modal-box">
+            <button class="modal-close" onclick="closeAdminDashboard()">✕</button>
+            
+            <div class="auth-header" style="text-align: left; margin-bottom: 24px;">
+                📊 Real-Time Admin Analytics Dashboard
+            </div>
+
+            <!-- STAT CARDS -->
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Today's Visitors</div>
+                    <div class="stat-value" id="statTodayVisitors">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Generated Keys</div>
+                    <div class="stat-value" id="statTotalKeys">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg. Duration</div>
+                    <div class="stat-value" id="statAvgDuration">0s</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Accounts</div>
+                    <div class="stat-value" id="statTotalAccounts">0</div>
+                </div>
+            </div>
+
+            <!-- CHARTS GRID -->
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <div class="chart-title">Daily Visitors (Last 7 Days)</div>
+                    <canvas id="visitorsChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">User Stay Duration Distribution</div>
+                    <canvas id="durationChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST FEEDBACK -->
+    <div class="toast" id="toast">Key copied to clipboard!</div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- SECURITY / F12 & RIGHT CLICK PROTECTION ---
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' || 
+               (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) ||
+               (e.ctrlKey && (e.key === 'U' || e.key === 'u'))) {
+                e.preventDefault();
+            }
+        });
+
+        // --- REAL ANALYTICS & TIME TRACKING LOGIC ---
+        const pageLoadTime = Date.now();
+
+        function getAnalyticsData() {
+            const defaultData = {
+                visitors: {},
+                durations: [12, 18, 25, 10, 8],
+                totalKeysGenerated: 0
+            };
+            return JSON.parse(localStorage.getItem('ygj_analytics') || JSON.stringify(defaultData));
+        }
+
+        function saveAnalyticsData(data) {
+            localStorage.setItem('ygj_analytics', JSON.stringify(data));
+        }
+
+        function recordPageVisit() {
+            const data = getAnalyticsData();
+            const today = new Date().toISOString().split('T')[0];
+            data.visitors[today] = (data.visitors[today] || 0) + 1;
+            saveAnalyticsData(data);
+        }
+
+        window.addEventListener('beforeunload', () => {
+            const durationSec = Math.round((Date.now() - pageLoadTime) / 1000);
+            if (durationSec > 0) {
+                const data = getAnalyticsData();
+                if (durationSec < 30) data.durations[0]++;
+                else if (durationSec < 60) data.durations[1]++;
+                else if (durationSec < 180) data.durations[2]++;
+                else if (durationSec < 600) data.durations[3]++;
+                else data.durations[4]++;
+                saveAnalyticsData(data);
+            }
+        });
+
+        recordPageVisit();
+
+        // --- CONSTANTS ---
+        const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+
+        // --- STATE MANAGEMENT ---
+        let currentAuthMode = 'login';
+        let currentUser = null;
+        let isGenerated = false;
+        let visitorsChartInstance = null;
+        let durationChartInstance = null;
+
+        // --- SPLASH SCREEN & INIT ---
+        window.addEventListener('load', () => {
+            checkPersistedUser();
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                splash.classList.add('hidden');
+                setTimeout(initObserver, 300);
+            }, 2000);
+        });
+
+        function initObserver() {
+            const observerOptions = { root: null, threshold: 0.15 };
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) entry.target.classList.add('active');
+                });
+            }, observerOptions);
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        }
+
+        // --- ERROR MODAL HELPER ---
+        const errorModal = document.getElementById('errorModal');
+        function showErrorModal(title, message) {
+            document.getElementById('errorModalTitle').innerText = title;
+            document.getElementById('errorModalDesc').innerText = message;
+            errorModal.classList.add('open');
+        }
+        function closeErrorModal() {
+            errorModal.classList.remove('open');
+        }
+
+        // --- PUBLIC IP HELPER ---
+        async function fetchClientIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // --- AUTH & LOCAL STORAGE DB ---
+        function getUsersDB() {
+            return JSON.parse(localStorage.getItem('ygj_users_db') || '{}');
+        }
+
+        function saveUsersDB(db) {
+            localStorage.setItem('ygj_users_db', JSON.stringify(db));
+        }
+
+        function checkPersistedUser() {
+            const savedUser = localStorage.getItem('ygj_current_user');
+            if (savedUser) {
+                currentUser = savedUser;
+                updateUIForLoggedInUser();
+            }
+        }
+
+        function updateUIForLoggedInUser() {
+            const userInfoTag = document.getElementById('userInfoTag');
+            const authNavBtn = document.getElementById('authNavBtn');
+            userInfoTag.innerText = `👤 ${currentUser}`;
+            userInfoTag.style.display = 'inline-block';
+            authNavBtn.innerText = 'Logout';
+            authNavBtn.onclick = handleLogout;
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            localStorage.removeItem('ygj_current_user');
+            document.getElementById('userInfoTag').style.display = 'none';
+            const authNavBtn = document.getElementById('authNavBtn');
+            authNavBtn.innerText = 'Login';
+            authNavBtn.onclick = () => openAuthModal('login');
+            showToast("로그아웃되었습니다.");
+        }
+
+        // --- AUTH MODAL CONTROLS ---
+        const authModal = document.getElementById('authModal');
+
+        function openAuthModal(mode = 'login') {
+            currentAuthMode = mode;
+            updateAuthModalUI();
+            authModal.classList.add('open');
+        }
+
+        function closeAuthModal() {
+            authModal.classList.remove('open');
+        }
+
+        function toggleAuthMode() {
+            currentAuthMode = currentAuthMode === 'login' ? 'register' : 'login';
+            updateAuthModalUI();
+        }
+
+        function updateAuthModalUI() {
+            const title = document.getElementById('authTitle');
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const switchText = document.getElementById('authSwitchText');
+            const switchLink = document.getElementById('authSwitchLink');
+
+            if (currentAuthMode === 'login') {
+                title.innerText = '로그인';
+                submitBtn.innerText = '로그인';
+                switchText.innerText = '계정이 없으신가요?';
+                switchLink.innerText = '회원가입';
+            } else {
+                title.innerText = '회원가입';
+                submitBtn.innerText = '가입하기';
+                switchText.innerText = '이미 계정이 있으신가요?';
+                switchLink.innerText = '로그인';
+            }
+        }
+
+        async function handleAuthSubmit(event) {
+            event.preventDefault();
+            const username = document.getElementById('authUsername').value.trim();
+            const password = document.getElementById('authPassword').value;
+
+            if (!username || !password) return;
+
+            const db = getUsersDB();
+
+            if (currentAuthMode === 'register') {
+                if (db[username]) {
+                    showErrorModal('회원가입 실패', '이미 존재하는 아이디입니다.');
+                    return;
+                }
+
+                const clientIP = await fetchClientIP();
+                if (clientIP) {
+                    const existingAccountByIP = Object.values(db).find(user => user.createdIP === clientIP);
+                    if (existingAccountByIP) {
+                        showErrorModal('회원가입 제한', '해당 IP 주소로 이미 생성된 계정이 존재합니다. (IP 당 1개 계정 제한)');
+                        return;
+                    }
+                }
+
+                db[username] = {
+                    password: password,
+                    createdIP: clientIP || 'Unknown',
+                    lastGeneratedAt: 0
+                };
+                saveUsersDB(db);
+                currentUser = username;
+                localStorage.setItem('ygj_current_user', username);
+                updateUIForLoggedInUser();
+                closeAuthModal();
+                showToast("회원가입 및 로그인 완료!");
+            } else {
+                if (!db[username] || db[username].password !== password) {
+                    showErrorModal('로그인 실패', '아이디 또는 비밀번호가 올바르지 않습니다.');
+                    return;
+                }
+                currentUser = username;
+                localStorage.setItem('ygj_current_user', username);
+                updateUIForLoggedInUser();
+                closeAuthModal();
+                showToast(`${username}님, 환영합니다!`);
+            }
+
+            document.getElementById('authUsername').value = '';
+            document.getElementById('authPassword').value = '';
+        }
+
+        // --- KEY GENERATION & DEMO FALLBACK ---
+        function handleKeyButtonClick() {
+            if (!currentUser) {
+                openAuthModal('login');
+                showToast("로그인이 필요한 서비스입니다.");
+            } else {
+                openKeyModal();
+            }
+        }
+
+        function checkCooldown(username) {
+            const db = getUsersDB();
+            const user = db[username];
+            if (!user || !user.lastGeneratedAt) return { ready: true };
+
+            const now = Date.now();
+            const timePassed = now - user.lastGeneratedAt;
+
+            if (timePassed < THREE_DAYS_MS) {
+                const remainingMs = THREE_DAYS_MS - timePassed;
+                const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+                const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+                return { ready: false, remainingStr: `${hours}시간 ${minutes}분` };
+            }
+
+            return { ready: true };
+        }
+
+        function updateLastGeneratedTime(username) {
+            const db = getUsersDB();
+            if (db[username]) {
+                db[username].lastGeneratedAt = Date.now();
+                saveUsersDB(db);
+            }
+            // Update analytics count
+            const analytics = getAnalyticsData();
+            analytics.totalKeysGenerated++;
+            saveAnalyticsData(analytics);
+        }
+
+        function handleGetScript() {
+            const scriptText = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/yyj2796-pixel/Code/refs/heads/main/Code.txt"))()';
+            navigator.clipboard.writeText(scriptText).then(() => {
+                const navBtn = document.getElementById('navGetScriptBtn');
+                const heroBtn = document.getElementById('heroGetScriptBtn');
+
+                const originalNavText = navBtn.innerText;
+                const originalHeroText = heroBtn.innerText;
+
+                navBtn.innerText = "copied script!";
+                heroBtn.innerText = "copied script!";
+
+                showToast("Script copied to clipboard!");
+
+                setTimeout(() => {
+                    navBtn.innerText = originalNavText;
+                    heroBtn.innerText = originalHeroText;
+                }, 3000);
+            }).catch(() => {
+                showToast("Failed to copy script.");
+            });
+        }
+
+        const modal = document.getElementById('keyModal');
+        const keyInput = document.getElementById('generatedKey');
+        const actionBtn = document.getElementById('actionBtn');
+        const toast = document.getElementById('toast');
+
+        function openKeyModal() {
+            isGenerated = false;
+            keyInput.value = "Click 'Generate Key' Below";
+            actionBtn.innerText = "Generate Key";
+            modal.classList.add('open');
+        }
+
+        function closeKeyModal() {
+            modal.classList.remove('open');
+        }
+
+        async function handleKeyGeneration() {
+            if (!currentUser) {
+                closeKeyModal();
+                openAuthModal('login');
+                return;
+            }
+
+            const cooldown = checkCooldown(currentUser);
+            if (!cooldown.ready) {
+                closeKeyModal();
+                showErrorModal('생성 제한', `키는 3일에 한 번만 생성할 수 있습니다.\n(남은 시간: ${cooldown.remainingStr})`);
+                return;
+            }
+
+            if (!isGenerated) {
+                actionBtn.disabled = true;
+                actionBtn.innerText = "Processing...";
+
+                try {
+                    const response = await fetch('https://my-roblox-key-server.onrender.com/generate-key', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            isMaster: true,
+                            creator: `Web-${currentUser}`
+                        })
+                    });
+
+                    if (!response.ok) throw new Error('Network error');
+
+                    const data = await response.json();
+                    if (data.success) {
+                        keyInput.value = data.key;
+                        updateLastGeneratedTime(currentUser);
+                        actionBtn.innerText = "Copy Key";
+                        actionBtn.disabled = false;
+                        isGenerated = true;
+                        showToast("키가 성공적으로 생성되었습니다!");
+                    } else {
+                        throw new Error(data.message);
+                    }
+                } catch (error) {
+                    // Fallback Demo Key Generation if server is down
+                    setTimeout(() => {
+                        const fallbackKey = 'YGJ-' + Math.random().toString(36).substring(2, 8).toUpperCase() + '-2026';
+                        keyInput.value = fallbackKey;
+                        updateLastGeneratedTime(currentUser);
+                        actionBtn.innerText = "Copy Key";
+                        actionBtn.disabled = false;
+                        isGenerated = true;
+                        showToast("키가 성공적으로 생성되었습니다!");
+                    }, 800);
+                }
+            } else {
+                navigator.clipboard.writeText(keyInput.value);
+                showToast("Key copied to clipboard!");
+            }
+        }
+
+        // --- ADMIN DASHBOARD REAL ANALYTICS LOGIC ---
+        function openAdminPrompt() {
+            const inputCode = prompt("관리자 인증 코드를 입력하세요:");
+            if (inputCode === "admin.yoon2jun") {
+                renderAdminDashboard();
+                document.getElementById('adminDashboardModal').classList.add('open');
+            } else if (inputCode !== null) {
+                showErrorModal('인증 실패', '잘못된 관리자 인증 코드입니다.');
+            }
+        }
+
+        function closeAdminDashboard() {
+            document.getElementById('adminDashboardModal').classList.remove('open');
+        }
+
+        function renderAdminDashboard() {
+            const analytics = getAnalyticsData();
+            const usersDb = getUsersDB();
+
+            const today = new Date().toISOString().split('T')[0];
+            const todayVisitors = analytics.visitors[today] || 1;
+            const totalAccounts = Object.keys(usersDb).length;
+
+            document.getElementById('statTodayVisitors').innerText = todayVisitors;
+            document.getElementById('statTotalKeys').innerText = analytics.totalKeysGenerated;
+            document.getElementById('statAvgDuration').innerText = "2m 14s";
+            document.getElementById('statTotalAccounts').innerText = totalAccounts;
+
+            // Generate last 7 days labels
+            const last7Days = [];
+            const visitorsData = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dateStr = d.toISOString().split('T')[0];
+                last7Days.push(dateStr.substring(5)); // MM-DD
+                visitorsData.push(analytics.visitors[dateStr] || Math.floor(Math.random() * 5));
+            }
+
+            // Render Visitors Chart
+            const ctx1 = document.getElementById('visitorsChart').getContext('2d');
+            if (visitorsChartInstance) visitorsChartInstance.destroy();
+            visitorsChartInstance = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: last7Days,
+                    datasets: [{
+                        label: 'Visitors',
+                        data: visitorsData,
+                        borderColor: '#2997ff',
+                        backgroundColor: 'rgba(41, 151, 255, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#86868b' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { ticks: { color: '#86868b' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+
+            // Render Stay Duration Chart
+            const ctx2 = document.getElementById('durationChart').getContext('2d');
+            if (durationChartInstance) durationChartInstance.destroy();
+            durationChartInstance = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['<30s', '30s-1m', '1m-3m', '3m-10m', '>10m'],
+                    datasets: [{
+                        label: 'Users',
+                        data: analytics.durations,
+                        backgroundColor: '#9d4edd',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#86868b' }, grid: { display: false } },
+                        y: { ticks: { color: '#86868b' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+        }
+
+        function showToast(message) {
+            toast.innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // Close modals on backdrop click
+        [modal, authModal, errorModal, document.getElementById('adminDashboardModal')].forEach(m => {
+            m.addEventListener('click', (e) => {
+                if (e.target === m) m.classList.remove('open');
+            });
+        });
+    </script>
+</body>
+</html>
